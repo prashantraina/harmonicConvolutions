@@ -5,7 +5,7 @@ import os
 import random
 import sys
 import time
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import zipfile
 sys.path.append('../')
 
@@ -19,11 +19,11 @@ def download2FileAndExtract(url, folder, fileName):
    print('Downloading rotated MNIST...')
    add_folder(folder)
    zipFileName = folder + fileName
-   request = urllib2.urlopen(url)
+   request = urllib.request.urlopen(url)
    with open(zipFileName, "wb") as f :
       f.write(request.read())
    if not zipfile.is_zipfile(zipFileName):
-      print('ERROR: ' + zipFileName + ' is not a valid zip file.')
+      print(('ERROR: ' + zipFileName + ' is not a valid zip file.'))
       sys.exit(1)
    print('Extracting...')
    wd = os.getcwd()
@@ -72,7 +72,7 @@ def settings(args):
       args.filter_size = 5
       args.n_rings = 4
       args.n_filters = 8
-      args.display_step = len(data['train_x'])/46
+      args.display_step = len(data['train_x'])//46
       args.is_classification = True
       args.dim = 28
       args.crop_shape = 0
@@ -88,7 +88,7 @@ def settings(args):
 def add_folder(folder_name):
    if not os.path.exists(folder_name):
       os.mkdir(folder_name)
-      print('Created {:s}'.format(folder_name))
+      print(('Created {:s}'.format(folder_name)))
    return folder_name
 
 
@@ -180,7 +180,7 @@ def main(args):
          __, loss_, accuracy_ = sess.run([train_op, loss, accuracy], feed_dict=feed_dict)
          train_loss += loss_
          train_acc += accuracy_
-         sys.stdout.write('{:d}/{:d}\r'.format(i, data['train_x'].shape[0]/args.batch_size))
+         sys.stdout.write('{:d}/{:d}\r'.format(i, data['train_x'].shape[0]//args.batch_size))
          sys.stdout.flush()
       train_loss /= (i+1.)
       train_acc /= (i+1.)
@@ -195,11 +195,11 @@ def main(args):
             sys.stdout.write('Validating\r')
             sys.stdout.flush()
          valid_acc /= (i+1.)
-         print('[{:04d} | {:0.1f}] Loss: {:04f}, Train Acc.: {:04f}, Validation Acc.: {:04f}, Learning rate: {:.2e}'.format(epoch,
-            time.time()-start, train_loss, train_acc, valid_acc, lr))
+         print(('[{:04d} | {:0.1f}] Loss: {:04f}, Train Acc.: {:04f}, Validation Acc.: {:04f}, Learning rate: {:.2e}'.format(epoch,
+            time.time()-start, train_loss, train_acc, valid_acc, lr)))
       else:
-         print('[{:04d} | {:0.1f}] Loss: {:04f}, Train Acc.: {:04f}, Learning rate: {:.2e}'.format(epoch,
-            time.time()-start, train_loss, train_acc, lr))
+         print(('[{:04d} | {:0.1f}] Loss: {:04f}, Train Acc.: {:04f}, Learning rate: {:.2e}'.format(epoch,
+            time.time()-start, train_loss, train_acc, lr)))
             
       # Save model
       if epoch % 10 == 0:
@@ -208,7 +208,7 @@ def main(args):
       
       # Updates to the training scheme
       #best, counter, lr = get_learning_rate(args, valid_acc, best, counter, lr)
-      lr = args.learning_rate * np.power(0.1, epoch / 50)
+      lr = args.learning_rate * np.power(0.1, epoch // 50)
       epoch += 1
 
    # TEST
@@ -222,7 +222,7 @@ def main(args):
       sys.stdout.flush()
    test_acc /= (i+1.)
    
-   print('Test Acc.: {:04f}'.format(test_acc))
+   print(('Test Acc.: {:04f}'.format(test_acc)))
    sess.close()
       
 

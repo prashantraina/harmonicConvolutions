@@ -29,11 +29,11 @@ def h_conv(X, W, strides=(1,1,1,1), padding='VALID', max_order=1, name='h_conv')
         # W_. For each output order, run through each input order and
         # copy-paste the filter for that convolution.
         W_ = []
-        for output_order in xrange(max_order+1):
+        for output_order in range(max_order+1):
             # For each output order build input
             Wr = []
             Wi = []
-            for input_order in xrange(Xsh[3]):
+            for input_order in range(Xsh[3]):
                 # Difference in orders is the convolution order
                 weight_order = output_order - input_order
                 weights = W[np.abs(weight_order)]
@@ -54,7 +54,7 @@ def h_conv(X, W, strides=(1,1,1,1), padding='VALID', max_order=1, name='h_conv')
         Y = tf.nn.conv2d(X_, W_, strides=strides, padding=padding, name=name)
         # Reshape result into appropriate format
         Ysh = Y.get_shape().as_list()
-        new_shape = tf.concat(axis=0, values=[Ysh[:3],[max_order+1,2],[Ysh[3]/(2*(max_order+1))]])
+        new_shape = tf.concat(axis=0, values=[Ysh[:3],[max_order+1,2],[Ysh[3]//(2*(max_order+1))]])
         return tf.reshape(Y, new_shape)
 
 
@@ -83,11 +83,11 @@ def h_range_conv(X, W, strides=(1,1,1,1), padding='VALID', in_range=(0,1),
         # W_. For each output order, run through each input order and copy-paste
         # the filter for that convolution.
         W_ = []
-        for output_order in xrange(out_range[0], out_range[1]+1):
+        for output_order in range(out_range[0], out_range[1]+1):
             # For each output order build input
             Wr = []
             Wi = []
-            for input_order in xrange(in_range[0], in_range[1]+1):
+            for input_order in range(in_range[0], in_range[1]+1):
                 # Difference in orders is the convolution order
                 weight_order = output_order - input_order
                 weights = W[weight_order]
@@ -108,7 +108,7 @@ def h_range_conv(X, W, strides=(1,1,1,1), padding='VALID', in_range=(0,1),
         # Reshape result into appropriate format
         Ysh = Y.get_shape().as_list()
         diff = out_range[1] - out_range[0] + 1
-        new_shape = tf.concat(axis=0, values=[Ysh[:3],[diff,2],[Ysh[3]/(2*diff)]])
+        new_shape = tf.concat(axis=0, values=[Ysh[:3],[diff,2],[Ysh[3]//(2*diff)]])
         return tf.reshape(Y, new_shape)
 
 
@@ -173,7 +173,7 @@ def bn(X, train_phase, decay=0.99, name='batchNorm'):
                                             shape=n_out, trainable=False)
         pop_var = tf.get_variable(name+'_pop_var', dtype=tf.float32,
                                           shape=n_out, trainable=False)
-        batch_mean, batch_var = tf.nn.moments(X, np.arange(len(Xsh)-3), name=name+'moments')
+        batch_mean, batch_var = tf.nn.moments(X, list(range(len(Xsh)-3)), name=name+'moments')
         ema = tf.train.ExponentialMovingAverage(decay=decay)
 
     def mean_var_with_update():
@@ -250,7 +250,7 @@ def get_weights(filter_shape, W_init=None, std_mult=0.4, name='W'):
 def get_interpolation_weights(filter_size, m, n_rings=None):
     """Resample the patches on rings using Gaussian interpolation"""
     if n_rings is None:
-        n_rings = np.maximum(filter_size/2, 2)
+        n_rings = np.maximum(filter_size//2, 2)
     radii = np.linspace(m!=0, n_rings-0.5, n_rings) #<-------------------------look into m and n-rings-0.5
     # We define pixel centers to be at positions 0.5
     foveal_center = np.asarray([filter_size, filter_size])/2.
@@ -279,7 +279,7 @@ def get_filters(R, filter_size, P=None, n_rings=None):
     filters = {}
     N = n_samples(k)
     from scipy.linalg import dft
-    for m, r in R.iteritems():
+    for m, r in R.items():
         rsh = r.get_shape().as_list()
         # Get the basis matrices
         weights = get_interpolation_weights(k, m, n_rings=n_rings)
@@ -328,14 +328,14 @@ def get_weights_dict(shape, max_order, std_mult=0.4, n_rings=None, name='W'):
     dev: (default /cpu:0)
     """
     if isinstance(max_order, int):
-        orders = xrange(-max_order, max_order+1)
+        orders = range(-max_order, max_order+1)
     else:
         diff = max_order[1]-max_order[0]
-        orders = xrange(-diff, diff+1)
+        orders = range(-diff, diff+1)
     weights_dict = {}
     for i in orders:
         if n_rings is None:
-            n_rings = np.maximum(shape[0]/2, 2)
+            n_rings = np.maximum(shape[0]//2, 2)
         sh = [n_rings,] + shape[2:]
         nm = name + '_' + str(i)
         weights_dict[i] = get_weights(sh, std_mult=std_mult, name=nm)
@@ -345,10 +345,10 @@ def get_weights_dict(shape, max_order, std_mult=0.4, n_rings=None, name='W'):
 def get_phase_dict(n_in, n_out, max_order, name='b'):
     """Return a dict of phase offsets"""
     if isinstance(max_order, int):
-        orders = xrange(-max_order, max_order+1)
+        orders = range(-max_order, max_order+1)
     else:
         diff = max_order[1]-max_order[0]
-        orders = xrange(-diff, diff+1)
+        orders = range(-diff, diff+1)
     phase_dict = {}
     for i in orders:
         init = np.random.rand(1,1,n_in,n_out) * 2. *np.pi
